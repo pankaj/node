@@ -7,4 +7,11 @@ class Logger extends EventEmitter {
 
 }
 
-module.exports = Logger;
+function logAuth(req, res, next) {
+    console.log("Authonticate...")
+    next();
+}
+
+// module.exports = Logger;
+
+module.exports = logAuth
