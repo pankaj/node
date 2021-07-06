@@ -2,10 +2,16 @@ const express = require('express');
 const _ = require('underscore')
 const logger = require('./logger')
 const app = express();
-const Joi = require("joi");
+
+const mongoose = require('mongoose');
+
 const helmet = require("helmet");
 const morgan = require("morgan");
 const config = require('config');
+
+const coursesRouts = require('./routes/courses')
+
+const debug = require('debug')("app:startup")
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -27,78 +33,25 @@ console.log(app.get('env'))
 if (app.get('env') === 'development') {
     app.use(morgan('tiny'));
     console.log("Morgan Srart....")
+    debug("From Debugger Settings...")
 }
 
 
-const courses = [{ id: 1, name: "Java" }, { id: 2, name: "Ruby" }, { id: 3, name: "Node" },]
+app.set('view engine', 'pug')
+app.set('views', './views')
+
 
 app.get("/", (req, res) => {
-    res.send("Wecome to API World..")
+    //res.send("Wecome to API World..")
+    res.render('index', { ttitle: "Hello Pug", hhmessage: "Welcome to pug template" })
 });
 
-app.get('/api/courses', (req, res) => {
-    if (_.isEmpty(courses)) return res.status(404).send("Not Found")
-    res.send(courses)
-})
-
-app.get('/api/courses/:id', (req, res) => {
-    let rec = courses.find(x => x.id === parseInt(req.params.id));
-    if (!rec) return res.status(404).send("Not Found")
-
-    res.send(courses.find(x => x.id === parseInt(req.params.id)))
-})
-
-app.put('/api/courses/:id', (req, res) => {
-
-    let rec = courses.find(x => x.id === parseInt(req.params.id));
-    if (!rec) return res.status(404).send("Not Found")
-
-    const { error } = validateCourse(req.body);
-    if (error) return res.status(400).send(error.details[0].message)
-
-    rec.name = req.body.name
-    res.send(rec)
-})
-
-app.post('/api/courses/', (req, res) => {
-
-    const { error } = validateCourse(req.body);
-    if (error) return res.status(400).send(error.details[0].message)
-
-    courses.push({ id: courses.length + 1, name: req.body.name });
-    res.send({ id: courses.length + 1, name: req.body.name })
-})
+app.use('/api/courses', coursesRouts)
 
 
-app.delete('/api/courses/:id', (req, res) => {
-    let rec = courses.find(x => x.id === parseInt(req.params.id));
-    if (!rec) return res.status(404).send("Not Found")
-
-
-    courses.splice(courses.indexOf(rec), 1)
-    res.send(rec)
-})
-
-// app.get('/api/courses/:id', (req, res) => {
-//     res.send(req.params.id)
-//     // res.send(req.query.hello)
-// })
-
-// app.get('/api/courses/:month/:year', (req, res) => {
-//     res.send([req.params.month, req.params.year])
-// })
-
-const validateCourse = (req) => {
-    const schema = Joi.object({
-        name: Joi.string()
-            // .alphanum()
-            .min(3)
-            .max(30)
-            .required()
-    });
-
-    return schema.validate(req);
-}
+mongoose.connect(config.get("db"), { useUnifiedTopology: true, useNewUrlParser: true })
+    .then(() => debug("Mongoose Connected..."))
+    .catch(err => console.error("Error to connect to MongoDB", err))
 
 
 

@@ -1,4 +1,5 @@
 {
     "name": "My Express App - Development",
-    "mail-server": "My Mail Server - Development"
+    "mail-server": "My Mail Server - Development",
+    "db": "mongodb+srv://psaini:9818040515@ind.52wsx.mongodb.net/nodemon?retryWrites=true&w=majority"
 }
